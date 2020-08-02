@@ -1,0 +1,24 @@
+import numpy as np
+import itertools
+import shutil
+import os
+import pickle
+import sys
+
+import main_simulation as main_sim
+
+sys.path.append("/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/scripts/common/")
+import analyze as anal  
+
+subject = 'tourraine'
+state = 'ON'
+channel = 'C3'
+
+piece = pickle.load(open(data_target_dir+"piece_wise_rate.pickle","rb"))
+
+for seed in seeds:
+    params = dict()
+    params["name"] = subject
+    params["seed"] = seed
+    
+    

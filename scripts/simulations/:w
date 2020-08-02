@@ -1,0 +1,34 @@
+import numpy as np
+import itertools
+import shutil
+import os
+import pickle
+import sys
+import pdb
+import pylab as pl
+
+sys.path.append("/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/scripts/common/")
+import analyze as anal  
+import params_d_ssbn as params_d
+pars = params_d.Parameters()
+
+subject = 'tourraine'
+state = 'ON'
+channel = 'C3'
+seeds = [234]
+
+data_target_dir = "/home/bahuguna/Work/Data_Alex/target_data/" 
+
+piece = pickle.load(open(data_target_dir+"piece_wise_rate.pickle","rb"))
+
+for seed in seeds:
+   
+    f_name_gp = 'GP_gp_' + str(900.0) + '_stn_' + str(subject)+"_"+state+"-3001-0"+".gdf"
+    f_name_stn = 'ST_gp_' + str(900.0) + '_stn_' + str(subject)+"_"+state+"-3002-0"+".gdf"
+    gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
+    stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+
+    fig = pl.figure()
+    t1 = fig.add_subplot(111)
+
+    anal.plot_raster([gpe_act,stn_act],t1,["GPe","STN"],[10000,15000])

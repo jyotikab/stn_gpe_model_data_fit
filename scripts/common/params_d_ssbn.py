@@ -1,4 +1,3 @@
-
 import numpy as np
 import sys
 import pdb
@@ -6,14 +5,16 @@ import socket
 import os
 
 
-home_directory = ""
+home_directory = "/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/"
 class Parameters(object):
-    data_path = home_directory+'/ssbn_effect/output/' # Store results
-    nest_path_tmp = home_directory+'/ssbn_effect/tmp/' # nest throws up files
+    #data_path = home_directory+'/ssbn_effect/output/' # Store results
+    data_path = home_directory+'data/' # Store results
+    #nest_path_tmp = home_directory+'/ssbn_effect/tmp/' # nest throws up files
+    nest_path_tmp = home_directory+'/data/tmp/' # nest throws up files
     print_time = False
 
     # GENERAL PARAMETERS    
-    T_sim = 3000.		# (ms) main simulation time
+    T_sim = 10000.		# (ms) main simulation time
 
     T_wup = 500.		# (ms) warmup time
     T_cdown = 0.		# (ms) cool-down time	# inputs are off in this last period
