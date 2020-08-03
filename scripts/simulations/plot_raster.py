@@ -26,15 +26,28 @@ subject = sys.argv[1]
 state = sys.argv[2]
 channel = sys.argv[3]
 gpe_rat = sys.argv[4]
+sim_type = sys.argv[5]
+gpe_ratio = sys.argv[6]
+stn_ratio = sys.argv[7]
+
 seeds = [234]
 
 
 #def plot_subject_wise_simulation_data_comparison(subject = 'tourraine',state = 'ON',channel = 'C3',seeds = [234]):
 
 for seed in seeds:
-    name = subject+"_"+state#+"_"+channel
-    f_name_gp = 'GP_gp_' + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
-    f_name_stn = 'ST_gp_' + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
+    if sim_type == "non_bursty":
+        name = subject+"_"+state#+"_"+channel
+        gpe_prefix = 'GP_gp_'
+        stn_prefix = 'ST_gp_'
+    elif sim_type == "bursty":
+        name = subject+"_"+state+"_gpe_ratio_"+str(gpe_ratio)+"_stn_ratio_"+str(stn_ratio)
+        gpe_prefix = 'GP_gp_bursty_'
+        stn_prefix = 'ST_gp_bursty_'
+
+
+    f_name_gp =  gpe_prefix + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
+    f_name_stn = stn_prefix + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
     gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
     stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
 
@@ -60,7 +73,10 @@ for seed in seeds:
     if os.path.isdir(fig_dir+subject) == False:
         os.mkdir(fig_dir+subject)
 
-    figname = "Simulation_data_comparison_"+state+"_"+channel+".png"
+    if sim_type == "non_bursty":
+        figname = "Simulation_data_comparison_"+state+"_"+channel+".png"
+    elif sim_type == "bursty":
+        figname = "Simulation_data_comparison_"+state+"_"+channel+"_bursty"+".png"
     fig.savefig(fig_dir+subject+"/"+figname)
 
 
