@@ -27,14 +27,15 @@ binw = 1
 subject = sys.argv[1]
 state = sys.argv[2]
 channel = sys.argv[3]
+gpe_rat = sys.argv[4]
 seeds = [234]
 
 
 simtime = pars.T_total # 
 for seed in seeds:
     name = subject+"_"+state#+"_"+channel
-    f_name_gp = 'GP_gp_' + str(900.0) + '_stn_' +name+ "-3001-0"+".gdf"
-    f_name_stn = 'ST_gp_' + str(900.0) + '_stn_' +name+"-3002-0"+".gdf"
+    f_name_gp = 'GP_gp_' + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
+    f_name_stn = 'ST_gp_' + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
     gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
     stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
 

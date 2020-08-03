@@ -21,7 +21,7 @@ connect_stn_gpe = True
 connect_poisson_bkg = True
 
 #poi_rate_bkg_gpe = np.arange(300.,1500.,200.)
-poi_rate_bkg_gpe =[900.] 
+#poi_rate_bkg_gpe =[950.] 
 
 pars = params_d.Parameters() # The param files object with all common parameters, like simtimes, number of neurons in GPe/STN, connectivity, delays etc
 
@@ -34,6 +34,7 @@ def runSim(params):
     stn_inp_rate = params["stn_inp"]['piece_wise_rate']
     seed = params["seed"]
     name = params["name"]
+    poi_rate_bkg_gpe = [float(params["gpe_inp"])]
     #simtime = params["simtime"]
     pars.T_sim = params["simtime"]
     pars.T_total = pars.T_sim+pars.T_wup+pars.T_cdown

@@ -4,7 +4,7 @@ import shutil
 import os
 import pickle
 import sys
-
+import pdb
 import main_simulation as main_sim
 
 sys.path.append("/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/scripts/common/")
@@ -24,7 +24,7 @@ seed_path = ""
 subject = sys.argv[1]
 state = sys.argv[2]
 channel = sys.argv[3]
-
+gpe_rat = sys.argv[4]
 piece = pickle.load(open(data_target_dir+"piece_wise_rate.pickle","rb"))
 
 
@@ -32,7 +32,6 @@ piece = pickle.load(open(data_target_dir+"piece_wise_rate.pickle","rb"))
 for seed in seeds:
 
     ts = piece[subject][state][channel]         
-
     
     sim_name = "rateEffect"
     params = dict()
@@ -40,6 +39,7 @@ for seed in seeds:
     params["name"] = subject+"_"+state#+"_"+channel
     params["seed"] = seed
     params["simtime"] = 10000
+    params["gpe_inp"] = gpe_rat
     sim_name = sim_name+"_"+str(subject)+"_"+str(seed)
     main_sim.runSim(params)
 
