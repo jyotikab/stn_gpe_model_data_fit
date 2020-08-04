@@ -133,7 +133,8 @@ class Parameters(object):
             'E_in': -80.0, 
             'tau_syn_ex':tau_syn_ex,
             'tau_syn_in': tau_syn_in,
-            'tau_minus':tau_m
+            'tau_minus':tau_m,
+            'spb':1.0
             }
 
 
