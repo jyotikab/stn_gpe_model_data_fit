@@ -57,8 +57,8 @@ for seed in seeds:
 
     # Pick at random two spectrograms
     ind = np.arange(0,len(orig_ts))
-    np.random.shuffle(ind)
-    ind_plot = ind[:2]
+    #np.random.shuffle(ind)
+    #ind_plot = ind[:2]
 
     fig = pl.figure(figsize=(20,12))
     fig.suptitle(subject+" : "+state+" - input: "+channel,fontsize=15,fontweight='bold')
@@ -72,11 +72,23 @@ for seed in seeds:
     
     subhands = [t2,t3]
     anal.draw_spectogram(a1,t1,"Simulation - STN")
-    for i,i1 in enumerate(ind_plot):
+    #for i,i1 in enumerate(ind_plot):
+    left_ts1 = []
+    right_ts1 = []
+    for i,i1 in enumerate(ind):
         ch,ts = orig_ts[i1]
         orig_ts1 = ts['ts'].T[0][:int(simtime)]
-        
-        anal.draw_spectogram(orig_ts1,subhands[i],ch)
+        if "L" in ch:
+            left_ts1.append(orig_ts1)
+        elif "R" in ch:
+            right_ts1.append(orig_ts1)
+
+    left_mean = np.nanmean(left_ts1,axis=0)        
+    anal.draw_spectogram(left_mean,subhands[0],"STN-Left")
+
+    right_mean = np.nanmean(right_ts1,axis=0)        
+    anal.draw_spectogram(right_mean,subhands[1],"STN-Right")
+
     t1.set_xlabel("")
     t2.set_xlabel("")
 

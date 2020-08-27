@@ -52,7 +52,6 @@ for seed in seeds:
     f_name_stn = stn_prefix + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
     gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
     stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
-
     #lim = int(np.max(stn_act[:,1]))
     lim = simtime
     orig_ts = [   (ch, subject_data[subject][state][ch]) for ch in STN_electrodes if ch in list(subject_data[subject][state].keys())]

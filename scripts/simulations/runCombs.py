@@ -25,6 +25,7 @@ subject = sys.argv[1]
 state = sys.argv[2]
 channel = sys.argv[3]
 gpe_rat = sys.argv[4]
+stn_bck_rate = sys.argv[5]
 piece = pickle.load(open(data_target_dir+"piece_wise_rate.pickle","rb"))
 
 
@@ -36,9 +37,11 @@ for seed in seeds:
     sim_name = "rateEffect"
     params = dict()
     params["stn_inp"] = ts
+    params["stn_bck_rate"] = stn_bck_rate
     params["name"] = subject+"_"+state #+"_"+channel
     params["seed"] = seed
     params["simtime"] = 10000
+    #params["simtime"] = 2000
     params["gpe_inp"] = gpe_rat
     sim_name = sim_name+"_"+str(subject)+"_"+str(seed)
     main_sim.runSim(params)

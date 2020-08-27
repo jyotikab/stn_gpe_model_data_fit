@@ -25,8 +25,9 @@ subject = sys.argv[1]
 state = sys.argv[2]
 channel = sys.argv[3]
 gpe_rat = sys.argv[4]
-gpe_ratio = sys.argv[5]
-stn_ratio = sys.argv[6]
+stn_bck_rate = sys.argv[5]
+gpe_ratio = sys.argv[6]
+stn_ratio = sys.argv[7]
 
 piece = pickle.load(open(data_target_dir+"piece_wise_rate.pickle","rb"))
 
@@ -41,7 +42,9 @@ for seed in seeds:
     params["stn_inp"] = ts
     params["seed"] = seed
     params["simtime"] = 10000
+    #params["simtime"] = 2000
     params["gpe_inp"] = gpe_rat
+    params["stn_bck_rate"] = stn_bck_rate
     params["gpe_ratio"] = gpe_ratio
     params["stn_ratio"] = stn_ratio
 

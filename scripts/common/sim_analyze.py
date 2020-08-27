@@ -114,14 +114,30 @@ def plot_instantaneous_rate_comparison(orig_ts,stn_act,bin_w,ax):
     bins = np.arange(0,np.max(stn_act[:,1]),bin_w)
 
     a,b = np.histogram(stn_act[:,1],bins=bins)
-
+    
+    stn_left = []
+    ind_left = []
+    stn_right = []
+    ind_right=[]
     ax.plot(b[:-1],a,'-',color='steelblue',linewidth=4.0,label='simulation-STN')
     fs = 2045
     for i,(ch,st_ts) in enumerate(orig_ts):
         print(i)
         lim = int(np.max(stn_act[:,1]))
         mean_ts = [ np.nanmean(st_ts['ts'][i:i+bin_w]) for i in np.arange(0,len(st_ts['ts'][:lim]),bin_w) ]
-        ax.plot(np.arange(0,len(st_ts['ts'][:lim]),bin_w),mean_ts,'-',color=colors[i+1],linewidth=4.0,label=ch)
+        if "L" in ch:
+            stn_left.append(mean_ts)
+            ind_left.append(i+1)
+        elif "R" in ch:
+            stn_right.append(mean_ts)
+            ind_right.append(i+1)
+
+        #ax.plot(np.arange(0,len(st_ts['ts'][:lim]),bin_w),mean_ts,'-',color=colors[i+1],linewidth=1.0,label=ch)
+        ax.plot(np.arange(0,len(st_ts['ts'][:lim]),bin_w),mean_ts,'-',color=colors[i+1],linewidth=1.0)
+
+    ax.plot(np.arange(0,len(st_ts['ts'][:lim]),bin_w),np.nanmean(stn_left,axis=0),'-',color=colors[np.max(ind_left)],linewidth=4.0,label="STN-Left")
+    ax.plot(np.arange(0,len(st_ts['ts'][:lim]),bin_w),np.nanmean(stn_right,axis=0),'-',color=colors[np.max(ind_right)],linewidth=4.0,label="STN-Right")
+
 
     ax.legend(prop={'size':10,'weight':'bold'})
 

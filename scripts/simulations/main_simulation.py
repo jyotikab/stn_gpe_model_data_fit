@@ -34,7 +34,9 @@ def runSim(params):
     stn_inp_rate = params["stn_inp"]['piece_wise_rate']
     seed = params["seed"]
     name = params["name"]
+
     poi_rate_bkg_gpe = [float(params["gpe_inp"])]
+    poi_rate_bkg_stn = [float(params["stn_bck_rate"])]
     #simtime = params["simtime"]
     pars.T_sim = params["simtime"]
     pars.T_total = pars.T_sim+pars.T_wup+pars.T_cdown
@@ -67,16 +69,19 @@ def runSim(params):
             if connect_poisson_bkg:
                     print( 'Connecting Poisson')
                     #PG to GPE
-                    pg_gen_gpe = nest.Create('poisson_generator',1,{'rate':poi_rate_bkg_gpe[ii]})
+                    #pg_gen_gpe = nest.Create('poisson_generator',1,{'rate':poi_rate_bkg_gpe[ii]})
+
+                    inh_rate = np.round(stn_inp_rate[1][1:],0)
+                    pg_gen_gpe = nest.Create('inhomogeneous_poisson_generator',1)
+                    nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*0.1,'rate_times':np.round(stn_inp_rate[0][1:],0)})
                     weights = np.random.uniform(low=0.5,high=1.5,size=Ngpe)
                     delays = np.ones(Ngpe)
                     nest.Connect(pg_gen_gpe,gp_neurons,syn_spec={"weight":[ [x] for x in weights],"delay":[[x] for x in delays]})
                     # PG TO STN
                     #pg_gen_stn = nest.Create('poisson_generator',1,{'rate':stn_inp_rate})
                     pg_gen_stn = nest.Create('inhomogeneous_poisson_generator',1)
-                    inh_rate = np.round(stn_inp_rate[1][1:],0)
                     print(inh_rate)
-                    nest.SetStatus(pg_gen_stn,{'rate_values':inh_rate,'rate_times':np.round(stn_inp_rate[0][1:],0)})
+                    nest.SetStatus(pg_gen_stn,{'rate_values':inh_rate+poi_rate_bkg_stn[ii],'rate_times':np.round(stn_inp_rate[0][1:],0)})
                     weights = np.random.uniform(low=0.5,high=1.5,size=Nstn)
                     delays = np.ones(Nstn)
                     nest.Connect(pg_gen_stn,st_neurons,syn_spec={'weight':[ [x] for x in weights],'delay':[[x] for x in delays]})

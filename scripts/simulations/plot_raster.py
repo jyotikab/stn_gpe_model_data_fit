@@ -32,6 +32,7 @@ stn_ratio = sys.argv[7]
 
 seeds = [234]
 
+pars = params_d.Parameters()
 
 #def plot_subject_wise_simulation_data_comparison(subject = 'tourraine',state = 'ON',channel = 'C3',seeds = [234]):
 
@@ -51,6 +52,13 @@ for seed in seeds:
     gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
     stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
 
+    ind_wup_gpe = np.where(gpe_act[:,1]>pars.T_wup)[0]
+    ind_wup_stn = np.where(stn_act[:,1]>pars.T_wup)[0]
+
+    gpe_act1 = gpe_act[ind_wup_gpe,:]
+    stn_act1 = stn_act[ind_wup_stn,:]
+
+
     lim = int(np.max(stn_act[:,1]))
     orig_ts = [   (ch, subject_data[subject][state][ch]) for ch in STN_electrodes if ch in list(subject_data[subject][state].keys())]
 
@@ -63,10 +71,10 @@ for seed in seeds:
 
     #raster_lim = [39000,42000]
     raster_lim = [5000,6000]
-    
+    #raster_lim = [1000,2000]
     sim_anal.plot_input(piece[subject][state][channel],t1,channel,lim)
-    sim_anal.plot_raster([gpe_act,stn_act],t2,["GPe","STN"],raster_lim,binw)
-    sim_anal.plot_instantaneous_rate_comparison(orig_ts,stn_act,binw,t3)
+    sim_anal.plot_raster([gpe_act1,stn_act1],t2,["GPe","STN"],raster_lim,binw)
+    sim_anal.plot_instantaneous_rate_comparison(orig_ts,stn_act1,binw,t3)
 
     t2.set_xlim(raster_lim[0],raster_lim[1])
 

@@ -104,9 +104,10 @@ class Parameters(object):
     epsilon_stn_gpe = 0.023
     epsilon_gpe_stn = 0.035
 
-    del_stn_gpe = 6.
-    del_gpe_gpe = 3.
-    del_gpe_stn = 6.
+    scale_delay = 1.5
+    del_stn_gpe = 6.*scale_delay
+    del_gpe_gpe = 3.*scale_delay
+    del_gpe_stn = 6.*scale_delay
 
     # Example parameter combination from robustness analysis
     '''
