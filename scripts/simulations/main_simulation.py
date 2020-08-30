@@ -73,7 +73,7 @@ def runSim(params):
 
                     inh_rate = np.round(stn_inp_rate[1][1:],0)
                     pg_gen_gpe = nest.Create('inhomogeneous_poisson_generator',1)
-                    nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*0.1,'rate_times':np.round(stn_inp_rate[0][1:],0)})
+                    nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*0.15,'rate_times':np.round(stn_inp_rate[0][1:],0)})
                     weights = np.random.uniform(low=0.5,high=1.5,size=Ngpe)
                     delays = np.ones(Ngpe)
                     nest.Connect(pg_gen_gpe,gp_neurons,syn_spec={"weight":[ [x] for x in weights],"delay":[[x] for x in delays]})

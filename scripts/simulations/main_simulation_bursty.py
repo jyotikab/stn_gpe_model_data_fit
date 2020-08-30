@@ -62,7 +62,7 @@ def runSim(params):
             st_neurons_nb = nest.Create('ssbn',Nstn_nb,pars.neuron_param)
 
             # For bursty
-            pars.neuron_param['spb'] = 5.0
+            pars.neuron_param['spb'] = 4.0
             Ngpe_b = int(Ngpe*(gpe_ratio))
             Nstn_b = int(Nstn*(stn_ratio))
             gp_neurons_b = nest.Create('ssbn',Ngpe_b,pars.neuron_param)
@@ -89,7 +89,7 @@ def runSim(params):
 
                     inh_rate = np.round(stn_inp_rate[1][1:],0)
                     pg_gen_gpe = nest.Create('inhomogeneous_poisson_generator',1)
-                    nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*0.1,'rate_times':np.round(stn_inp_rate[0][1:],0)})
+                    nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*0.15,'rate_times':np.round(stn_inp_rate[0][1:],0)})
 
                     weights = np.random.uniform(low=0.5,high=1.5,size=Ngpe)
                     delays = np.ones(Ngpe)
