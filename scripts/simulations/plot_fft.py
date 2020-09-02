@@ -17,7 +17,6 @@ pars = params_d.Parameters()
 sys.path.append("/home/bahuguna/Work/Data_Alex/scripts/")
 import analyze as anal
 
-fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/"
 
 
 
@@ -33,9 +32,13 @@ gpe_rat = sys.argv[4]
 sim_type = sys.argv[5]
 gpe_ratio = sys.argv[6]
 stn_ratio = sys.argv[7]
+ga = sys.argv[8]
 
 seeds = [234]
-
+if ga == "n":
+    fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/"
+else:
+    fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/GA_params/"
 
 simtime = pars.T_total # 
 for seed in seeds:
@@ -50,8 +53,13 @@ for seed in seeds:
 
     f_name_gp =  gpe_prefix + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
     f_name_stn = stn_prefix + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
-    gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
-    stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+    if ga == "n":
+        gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
+        stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+    else:
+        gpe_act = np.loadtxt("/home/bahuguna/Work/Data_Alex/target_data/GA_params/"+f_name_gp)
+        stn_act = np.loadtxt("/home/bahuguna/Work/Data_Alex/target_data/GA_params/"+f_name_stn)
+
     #lim = int(np.max(stn_act[:,1]))
     lim = simtime
     orig_ts = [   (ch, subject_data[subject][state][ch]) for ch in STN_electrodes if ch in list(subject_data[subject][state].keys())]
@@ -67,7 +75,9 @@ for seed in seeds:
 
     for i,(ch,ts) in enumerate(orig_ts):
         ts1 = ts['ts'].T[0][:int(simtime)]
-        anal.draw_fft(ts1,t1,ch,colors[i])
+        # band pass filter 50 hz, line noise
+        ts1_filt = anal.remove_band_signal(ts1,50,2048)
+        anal.draw_fft(ts1_filt,t1,ch,colors[i])
     ind_ts = np.where(stn_act[:,1] <=lim)
     a1,b1 = np.histogram(stn_act[ind_ts,1],bins=np.arange(0,simtime,binw))
 

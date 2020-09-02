@@ -15,7 +15,6 @@ pars = params_d.Parameters()
 sys.path.append("/home/bahuguna/Work/Data_Alex/scripts/")
 import analyze as anal
 
-fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/"
 
 
 
@@ -31,8 +30,14 @@ gpe_rat = sys.argv[4]
 sim_type = sys.argv[5]
 gpe_ratio = sys.argv[6]
 stn_ratio = sys.argv[7]
-
+ga = sys.argv[8]
 seeds = [234]
+
+if ga == "n":
+    fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/"
+else:
+    fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/GA_params/"
+
 
 
 simtime = pars.T_total # 
@@ -48,8 +53,12 @@ for seed in seeds:
 
     f_name_gp =  gpe_prefix + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
     f_name_stn = stn_prefix + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
-    gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
-    stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+    if ga == "n":
+        gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
+        stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+    else:
+        gpe_act = np.loadtxt("/home/bahuguna/Work/Data_Alex/target_data/GA_params/"+f_name_gp)
+        stn_act = np.loadtxt("/home/bahuguna/Work/Data_Alex/target_data/GA_params/"+f_name_stn)
 
     #lim = int(np.max(stn_act[:,1]))
     lim = simtime

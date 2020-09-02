@@ -56,64 +56,71 @@ def compVals(val,list1):
 	return False
 
 def fitness_function(individual):
-	#sols = [d1ta,d2ta,fsita,fsiti,tata,tati,tastn,tita,titi,tistn,stnta,stnti,tid2,tad2,d1ti,d2ti,jc1,jc2,jfsictx,jstnctx,d1d1,d1d2,d2d1,d2d2,d2fsi,d1fsi,gpid1,gpiti,gpita,gpistn]		
-	sols = list(individual)		
+    #sols = [d1ta,d2ta,fsita,fsiti,tata,tati,tastn,tita,titi,tistn,stnta,stnti,tid2,tad2,d1ti,d2ti,jc1,jc2,jfsictx,jstnctx,d1d1,d1d2,d2d1,d2d2,d2fsi,d1fsi,gpid1,gpiti,gpita,gpistn]		
+    sols = list(individual)		
+    poi_rate_bkg_gpe = GA_par.bkg_gpe[sols[0]]
+    poi_rate_bkg_stn = GA_par.bkg_stn[sols[1]]
+    scale_gpe_inh = GA_par.scale_gpe_inh[sols[2]]
+    scale_stn_exc = GA_par.scale_stn_exc[sols[3]]
+    scale_synaptic = GA_par.scale_synaptic[sols[4]]
+    scale_conn = GA_par.scale_conn[sols[5]]
+    scale_delays = GA_par.scale_delays[sols[6]]
+    sim_type = GA_par.sim_type[sols[7]]
+    gpe_ratio = GA_par.gpe_ratio[sols[8]]
+    stn_ratio = GA_par.stn_ratio[sols[9]]
 
 
-	poi_rate_bkg_gpe = GA_par.bkg_gpe[sols[0]]
-	poi_rate_bkg_stn = GA_par.bkg_stn[sols[1]]
-	scale_gpe_inh = GA_par.scale_gpe_inh[sols[2]]
-	scale_synaptic = GA_par.scale_synaptic[sols[3]]
-	scale_conn = GA_par.scale_conn[sols[4]]
-	scale_delays = GA_par.scale_delays[sols[5]]
+    err = dict()
 
-	err = dict()
+    for st in ["OFF","ON"]:
+            # Run the simulation - OFF state
+            params = dict()
+            err[st] = dict()
+            if st == "OFF":
+                    params["stn_inp"] = stn_ip_off
+            elif st == "ON":
+                    params["stn_inp"] = stn_ip_on
+            params["stn_bck_rate"] = poi_rate_bkg_stn
+            params["gpe_inp"] = poi_rate_bkg_gpe
+            params["simtime"] = 5000
+            params["seed"] = seed1
+            params["scale_gpe_inh"] = scale_gpe_inh
+            params["scale_stn_exc"] = scale_stn_exc
+            params["scale_synaptic"] = scale_synaptic
+            params["scale_conn"] = scale_conn
+            params["scale_delays"] = scale_delays
+            params["sim_type"] = sim_type
+            params["gpe_ratio"] = gpe_ratio
+            params["stn_ratio"] = stn_ratio
+            params["name"] = subject1+"_"+st 
+            params["path"] = path
+            gpe_act, stn_act = main_sim_ga.runSim(params)	
 
-	for st in ["OFF","ON"]:
-		# Run the simulation - OFF state
-		params = dict()
-		err[st] = dict()
-		if st == "OFF":
-			params["stn_inp"] = stn_ip_off
-		elif st == "ON":
-			params["stn_inp"] = stn_ip_on
-		params["stn_bck_rate"] = poi_rate_bkg_stn
-		params["gpe_inp"] = poi_rate_bkg_gpe
-		params["simtime"] = 5000
-		params["seed"] = seed1
-		params["scale_gpe_inh"] = scale_gpe_inh
-		params["scale_synaptic"] = scale_synaptic
-		params["scale_conn"] = scale_conn
-		params["scale_delays"] = scale_delays
-		params["name"] = subject1+"_"+st 
-		params["path"] = path
-		gpe_act, stn_act = main_sim_ga.runSim(params)	
+            a_stn,b_stn = np.histogram(stn_act[:,0],bins = np.arange(500.,simtime,1))
+            freq,fft = anal.calc_fft(a_stn)
+            fft = fft[:int(len(freq)/2)]
+            freq = freq[:int(len(freq)/2)]
 
-		a_stn,b_stn = np.histogram(stn_act[:,0],bins = np.arange(500.,simtime,1))
-		freq,fft = anal.calc_fft(a_stn)
-		fft = fft[:int(len(freq)/2)]
-		freq = freq[:int(len(freq)/2)]
+            #ind_freq1 = np.where(freq<=90)
+            #fft = fft[ind_freq1]
+            #freq = freq[ind_freq1]
+            err[st]["left"] = np.sum((stn_fft[st]["left"][:-1] - fft)**2)
+            err[st]["right"] = np.sum((stn_fft[st]["right"][:-1] - fft)**2)
 
-		#ind_freq1 = np.where(freq<=90)
-		#fft = fft[ind_freq1]
-		#freq = freq[ind_freq1]
-		err[st]["left"] = np.sum((stn_fft[st]["left"][:-1] - fft)**2)
-		err[st]["right"] = np.sum((stn_fft[st]["right"][:-1] - fft)**2)
-	
-	#print err
-	print( "Error ",err)
+    #print err
+    print( "Error ",err)
 
-	if (err["ON"]["left"] <= 0.1 and err["OFF"]["left"] <=0.001) or (err["ON"]["right"] <= 0.1 and err["OFF"]["right"] <=0.001):
-		if list(individual) not in ans["params"]:
-			ans["params"].append(params)
-			ans["errors"].append(err)	
-			print("solution found !")
-			print(params)			
-			#ans["stats"] = statsVsIters
-			pickle.dump(ans,open(path+"Combinations_"+str(seed1)+".pickle","wb"))
-	#return Errors,
-	err_num = err["ON"]["left"]+ err["OFF"]["left"]+err["ON"]["right"]+ err["OFF"]["right"]
-	return err_num,
+    if (err["ON"]["left"] <= 0.1 and err["OFF"]["left"] <=0.001) or (err["ON"]["right"] <= 0.1 and err["OFF"]["right"] <=0.001):
+            if list(individual) not in ans["params"]:
+                    ans["params"].append(params)
+                    ans["errors"].append(err)	
+                    print("solution found !")
+                    print(params)			
+                    #ans["stats"] = statsVsIters
+                    pickle.dump(ans,open(path+"Combinations_"+str(seed1)+".pickle","wb"))
+    #return Errors,
+    err_num = err["ON"]["left"]+ err["OFF"]["left"]+err["ON"]["right"]+ err["OFF"]["right"]
+    return err_num,
 
 
 def paramSearch(subject,seed,anti=0):
@@ -174,8 +181,8 @@ def paramSearch(subject,seed,anti=0):
 	global seed1
 	seed1 = int(seed)
 
-	#np.random.seed(np.random.randint(0,99999999,1)[0])
-	np.random.seed(seed1)
+	np.random.seed(np.random.randint(0,99999999,1)[0])
+	#np.random.seed(seed1)
 	#numEpochs = 2500
 	
 	global posInd
@@ -200,7 +207,7 @@ def paramSearch(subject,seed,anti=0):
 	terms = ["bkg_gpe","bkg_stn","scale_gpe_inh","scale_synaptic","scale_conn","scale_delays"]
 
 	def get_ind():
-		return np.random.randint(0,10,1) 
+		return np.random.randint(0,10,1)[0] 
 	
 	creator.create("FitnessMin",base.Fitness, weights=(-1.0,))
 	creator.create("Individual",list, fitness=creator.FitnessMin)
@@ -212,15 +219,16 @@ def paramSearch(subject,seed,anti=0):
 	toolbox.register("attr_ind",get_ind)
 
 	toolbox.register("individual", tools.initCycle, creator.Individual,
-				 (toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind), n=1)
+				 (toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind, toolbox.attr_ind,toolbox.attr_ind,toolbox.attr_ind,toolbox.attr_ind,toolbox.attr_ind), n=1)
 
 	toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 
 	toolbox.register("mate", tools.cxUniform,indpb=0.1)
-	toolbox.register("mutate", tools.mutGaussian)
+	#toolbox.register("mutate", tools.mutGaussian)
+	toolbox.register("mutate", tools.mutUniformInt,low=0,up=9,indpb=0.8)
 	#toolbox.register("mutate", tools.mutPolynomialBounded,eta=0.5)
-	toolbox.register("select", tools.selTournament, tournsize=10)
+	toolbox.register("select", tools.selTournament, tournsize=3)
 	#toolbox.register("select", tools.selBest)
 	toolbox.register("evaluate", fitness_function)
 
@@ -283,7 +291,7 @@ def paramSearch(subject,seed,anti=0):
 				hof.update(offspring)	
 
 			# The population is entirely replaced by the offspring
-			pop[:] = toolbox.select(offspring+[x for x in hof],10)
+			pop[:] = toolbox.select(pop+offspring+[x for x in hof],10)
 
 	return pop		
 

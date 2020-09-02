@@ -1,6 +1,6 @@
 
 import matplotlib as mpl
-#mpl.use('Agg')
+mpl.use('Agg')
 
 import pylab as pl
 import numpy as np
@@ -18,28 +18,25 @@ from scipy.integrate import odeint
 import sys
 import glob
 from operator import attrgetter
-import os
+
 import copy
-import pdb
 from deap import base, creator
 from deap import tools
 import deap
 import random
-import GA_params as GA_par
 #import scipy.stats as stats
 
 
 
-sys.path.append("/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/scripts/simulations/")
+sys.path.append("/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/scripts/simulation/")
 
 import main_simulation_ga as main_sim_ga
 
 sys.path.append("/home/bahuguna/Work/Data_Alex/stn_gpe_model/stn_gpe_model_data_fit/scripts/common/")
 import params_d_ssbn as params_d
-sys.path.append("/home/bahuguna/Work/Data_Alex/scripts/")
-import analyze as anal
 
-data_target_dir = "/home/bahuguna/Work/Data_Alex/target_data/"
+
+data_target_dir = "/home/Work/Data_Alex/target_data/"
 
 subject_data = pickle.load(open(data_target_dir+"Subject_data.pickle","rb"))
 
@@ -60,12 +57,12 @@ def fitness_function(individual):
 	sols = list(individual)		
 
 
-	poi_rate_bkg_gpe = GA_par.bkg_gpe[sols[0]]
-	poi_rate_bkg_stn = GA_par.bkg_stn[sols[1]]
-	scale_gpe_inh = GA_par.scale_gpe_inh[sols[2]]
-	scale_synaptic = GA_par.scale_synaptic[sols[3]]
-	scale_conn = GA_par.scale_conn[sols[4]]
-	scale_delays = GA_par.scale_delays[sols[5]]
+	poi_rate_bkg_gpe = sols[0]
+	poi_rate_bkg_stn = sols[1]
+	scale_gpe_inh = sols[2]
+	scale_synaptic = sols[3]
+	scale_conn = sols[4]
+	scale_delays = sols[5]
 
 	err = dict()
 
@@ -80,37 +77,31 @@ def fitness_function(individual):
 		params["stn_bck_rate"] = poi_rate_bkg_stn
 		params["gpe_inp"] = poi_rate_bkg_gpe
 		params["simtime"] = 5000
-		params["seed"] = seed1
+		params["seed"] = seed
 		params["scale_gpe_inh"] = scale_gpe_inh
 		params["scale_synaptic"] = scale_synaptic
 		params["scale_conn"] = scale_conn
 		params["scale_delays"] = scale_delays
-		params["name"] = subject1+"_"+st 
+		params["name"] = subject+"_"+state 
 		params["path"] = path
 		gpe_act, stn_act = main_sim_ga.runSim(params)	
 
 		a_stn,b_stn = np.histogram(stn_act[:,0],bins = np.arange(500.,simtime,1))
 		freq,fft = anal.calc_fft(a_stn)
-		fft = fft[:int(len(freq)/2)]
-		freq = freq[:int(len(freq)/2)]
 
-		#ind_freq1 = np.where(freq<=90)
-		#fft = fft[ind_freq1]
-		#freq = freq[ind_freq1]
-		err[st]["left"] = np.sum((stn_fft[st]["left"][:-1] - fft)**2)
-		err[st]["right"] = np.sum((stn_fft[st]["right"][:-1] - fft)**2)
+		err[st]["left"] = np.sum((stn_fft[st]["left"] - fft)**2)
+		err[st]["right"] = np.sum((stn_fft[st]["right"] - fft)**2)
 	
 	#print err
 	print( "Error ",err)
 
-	if (err["ON"]["left"] <= 0.1 and err["OFF"]["left"] <=0.001) or (err["ON"]["right"] <= 0.1 and err["OFF"]["right"] <=0.001):
-		if list(individual) not in ans["params"]:
+	if (err["ON"]["left"] <= 0.1 and err["OFF"]["left"] <=0.1) or (err["ON"]["right"] <= 0.1 and err["OFF"]["right"] <=0.1):
+		if list(individual) not in ans["sols"]:
 			ans["params"].append(params)
 			ans["errors"].append(err)	
-			print("solution found !")
-			print(params)			
+				
 			#ans["stats"] = statsVsIters
-			pickle.dump(ans,open(path+"Combinations_"+str(seed1)+".pickle","wb"))
+			pickle.dump(ans,open(path+"Combinations_"+str(seed)+".pickle","wb"))
 	#return Errors,
 	err_num = err["ON"]["left"]+ err["OFF"]["left"]+err["ON"]["right"]+ err["OFF"]["right"]
 	return err_num,
@@ -118,51 +109,38 @@ def fitness_function(individual):
 
 def paramSearch(subject,seed,anti=0):
 
-	if os.path.isdir(data_target_dir+str(seed)+"/"+subject) == False:
-		os.mkdir(data_target_dir+str(seed)+"/"+subject)
+	if os.path.isdir(target_data_dir+str(seed)+"/"+subject) == False:
+		os.mkdir(target_data_dir+str(seed)+"/"+subject)
 
-	global simtime 
 	simtime = 5000
-	ch_ctx = "C3"
-	global stn_fft
-	stn_fft = dict()
-	global subject1 
-	subject1 = subject
-	#global seed
-	#seed = seed
+	ch = "C3"
+	global stn_fft = dict()
+	global subject = subject
+	global seed = seed
 	for state in ["ON","OFF"]:
 		orig_ts = [   (ch, subject_data[subject][state][ch]) for ch in STN_electrodes if ch in list(subject_data[subject][state].keys())]
 		stn_fft[state] = dict()
 		temp_l = []
 		temp_r = []
+
 		for i,(ch,ts) in enumerate(orig_ts):
-			ts1 = ts['ts'].T[0][500:int(simtime)]
+			ts1 = ts['ts'].T[0][:int(simtime)]
 			ts1_filt = anal.remove_band_signal(ts1,50,2048)
-			freq,fft = anal.calc_fft(ts1_filt)
+			fft = anal.calc_fft(ts1_filt)
 			if "L" in ch:
 				temp_l.append(fft)
 			elif "R" in ch:
 				temp_r.append(fft)
 
+	
+		stn_fft[state]["left"] = np.mean(temp_l,axis=0)
+		stn_fft[state]["right"] = np.mean(temp_r,axis=0)
 
 
-		stn_fft[state]["left"] = np.mean(temp_l,axis=0)[:int(len(freq)/2)]
-		stn_fft[state]["right"] = np.mean(temp_r,axis=0)[:int(len(freq)/2)]
-		stn_fft[state]["freq"] = freq[:int(len(freq)/2)]
-		'''	
-		# Frequency cutoff at 90Hz)
-		ind_freq = np.where(freq<=90)
-		stn_fft[state]["left"] = stn_fft[state]["left"][ind_freq]
-		stn_fft[state]["right"] = stn_fft[state]["right"][ind_freq]
-		stn_fft[state]["freq"] = stn_fft[state]["freq"][ind_freq]
-		'''
-	global path
-	path = data_target_dir+str(seed)+"/"+subject+"/"
+	global path = target_data_dir+str(seed)+"/"+subject+"/"
 
-	global stn_ip_on
-	stn_ip_on = piece[subject]["ON"][ch_ctx]
-	global stn_ip_off 
-	stn_ip_off = piece[subject]["OFF"][ch_ctx]
+	global stn_ip_on = piece[subject]["ON"][ch]
+	global stn_ip_off = piece[subject]["OFF"][ch]
 
 
 	print( "in Paramsearch")
@@ -172,9 +150,7 @@ def paramSearch(subject,seed,anti=0):
 	leak = -0.1
 
 	global seed1
-	seed1 = int(seed)
-
-	#np.random.seed(np.random.randint(0,99999999,1)[0])
+	seed1 = seed
 	np.random.seed(seed1)
 	#numEpochs = 2500
 	
@@ -186,8 +162,8 @@ def paramSearch(subject,seed,anti=0):
 	
 	global ans
 	ans = dict()
-	ans["params"] = []
-	ans["errors"] = []
+	ans["sols"] = []
+	ans["errs"] = []
 
 	def findUniq(sols,errs):
 		Allstrs = [ np.array2string(np.array(seq)) for seq in sols]
@@ -227,10 +203,10 @@ def paramSearch(subject,seed,anti=0):
 	#toolbox.decorate("mutate",checkBounds(params["negMax"]*2.5,0,params["posMax"]*1.5))	
 	#toolbox.decorate("mate",checkBoundsCrossover(params["negMax"]*2.5,0,params["posMax"]*1.5))	
 
-	pop = toolbox.population(n=20)
+	pop = toolbox.population(n=100)
 	#pop = toolbox.population(n=10)
 	#print pop
-	CXPB, MUTPB, NGEN = 0.95, 0.8, 100
+	CXPB, MUTPB, NGEN = 0.95, 0.8, 200
 	# Evaluate the entire population
 	fitnesses = map(toolbox.evaluate, pop)
 	for ind, fit in zip(pop, fitnesses):
@@ -243,53 +219,12 @@ def paramSearch(subject,seed,anti=0):
 	stats.register("min", np.min)
 	stats.register("max", np.max)
 
-	#ans["gaParams"] = ga.gaParams
+	ans["gaParams"] = ga.gaParams
 
 	global statsVsIters
 	statsVsIters = []
-
-	#hof = deap.tools.HallOfFame(10)
-	global hof
-	hof = tools.ParetoFront()
-
+	hof = deap.tools.HallOfFame(ga.gaParams["hof_size"])
 	#pop = [ x for x in pop if (np.isinf(x.fitness.values)==False) and (np.inf not in x) and (-np.inf not in x) ]	
-	fitnesses = map(toolbox.evaluate, pop)
-	for ind, fit in zip(pop, fitnesses):
-		ind.fitness.values = fit
-	for g in np.arange(NGEN):
-		# Select the next generation individuals
-		offspring = toolbox.select(pop, len(pop))
-	# Clone the selected individuals
-		offspring = list(map(toolbox.clone, offspring))
-		print(offspring)  
-	# Apply crossover and mutation on the offspring
-		for child1, child2 in zip(offspring[::2], offspring[1::2]):
-			if random.random() < CXPB:
-				toolbox.mate(child1, child2)
-				del child1.fitness.values
-				del child2.fitness.values
-
-			for mutant in offspring:
-				if random.random() < MUTPB:
-					toolbox.mutate(mutant)
-					del mutant.fitness.values
-		
-		# Evaluate the individuals with an invalid fitness
-			invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-			fitnesses = map(toolbox.evaluate, invalid_ind)
-			for ind, fit in zip(invalid_ind, fitnesses):
-				ind.fitness.values = fit
-			if hof is not None:
-				hof.update(offspring)	
-
-			# The population is entirely replaced by the offspring
-			pop[:] = toolbox.select(offspring+[x for x in hof],10)
-
-	return pop		
-
-
-
-	'''
 	for g in xrange(NGEN):
 		# Select the next generation individuals
 		#offspring = toolbox.select(pop, len(pop))
@@ -358,7 +293,7 @@ def paramSearch(subject,seed,anti=0):
 			ans["stats"] = statsVsIters
 			pickle.dump(ans,open(path+"Combinations_uniform_dist_new_"+str(seed1)+".pickle","w"))
 
-	'''
+
 
 
 
