@@ -50,6 +50,9 @@ def runSim(params):
     sim_type = params["sim_type"]
     gpe_ratio = params["gpe_ratio"]
     stn_ratio = params["stn_ratio"]
+    ip_stn_delay = params["ip_stn_delay"]
+    ip_gpe_delay = params["ip_gpe_delay"]
+
     print(simtime)
     print(params)
     for ii in range(len(poi_rate_bkg_gpe)):
@@ -104,7 +107,8 @@ def runSim(params):
                     pg_gen_gpe = nest.Create('inhomogeneous_poisson_generator',1)
                     nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*scale_gpe_inh,'rate_times':np.round(stn_inp_rate[0][1:],0)})
                     weights = np.random.uniform(low=0.5,high=1.5,size=Ngpe_n)
-                    delays = np.ones(Ngpe_n)
+                    #delays = np.ones(Ngpe_n)
+                    delays = np.ones(Ngpe_n)*ip_gpe_delay
                     #if sim_type == "non_bursty":
                     nest.Connect(pg_gen_gpe,gp_neurons,syn_spec={"weight":[ [x] for x in weights],"delay":[[x] for x in delays]})
                     #else:
@@ -115,7 +119,7 @@ def runSim(params):
                     print(inh_rate)
                     nest.SetStatus(pg_gen_stn,{'rate_values':inh_rate*scale_stn_exc+poi_rate_bkg_stn[ii],'rate_times':np.round(stn_inp_rate[0][1:],0)})
                     weights = np.random.uniform(low=0.5,high=1.5,size=Nstn_n)
-                    delays = np.ones(Nstn_n)
+                    delays = np.ones(Nstn_n)*ip_stn_delay
                     #if sim_type == "non_bursty":
                     nest.Connect(pg_gen_stn,st_neurons,syn_spec={'weight':[ [x] for x in weights],'delay':[[x] for x in delays]})
                     #else:

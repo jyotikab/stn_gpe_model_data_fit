@@ -27,28 +27,60 @@ subject = sys.argv[1]
 state = sys.argv[2]
 channel = sys.argv[3]
 gpe_rat = sys.argv[4]
-sim_type = sys.argv[5]
-gpe_ratio = sys.argv[6]
-stn_ratio = sys.argv[7]
+stn_rat = sys.argv[5]
+sim_type = sys.argv[6]
+gpe_ratio = sys.argv[7]
+stn_ratio = sys.argv[8]
+scale_gpe_inh = sys.argv[9]
+scale_stn_exc = sys.argv[10]
+scale_synaptic = sys.argv[11]
+scale_conn = sys.argv[12]
+scale_delays = sys.argv[13]
+ip_stn_delay = sys.argv[14]
+ip_gpe_delay = sys.argv[15]
+
+index = sys.argv[16]
+electrode = sys.argv[17]
+ga = sys.argv[18]
 
 seeds = [234]
+if ga == "n":
+    fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/"
+else:
+    fig_dir = "/home/bahuguna/Work/Data_Alex/figs/stn_gpe_model/GA_params/"
 
 
 simtime = pars.T_total # 
 for seed in seeds:
-    if sim_type == "non_bursty":
-        name = subject+"_"+state#+"_"+channel
-        gpe_prefix = 'GP_gp_'
-        stn_prefix = 'ST_gp_'
-    elif sim_type == "bursty":
-        name = subject+"_"+state+"_gpe_ratio_"+str(gpe_ratio)+"_stn_ratio_"+str(stn_ratio)
-        gpe_prefix = 'GP_gp_bursty_'
-        stn_prefix = 'ST_gp_bursty_'
+    if ga == "n":
+        if sim_type == "non_bursty":
+            name = subject+"_"+state#+"_"+channel
+            gpe_prefix = 'GP_gp_'
+            stn_prefix = 'ST_gp_'
+        elif sim_type == "bursty":
+            name = subject+"_"+state+"_gpe_ratio_"+str(gpe_ratio)+"_stn_ratio_"+str(stn_ratio)
+            gpe_prefix = 'GP_gp_bursty_'
+            stn_prefix = 'ST_gp_bursty_'
+    else:
+            name = subject+"_"+state#+"_"+channel
+            gpe_prefix = 'GP_gp_'
+            stn_prefix = 'ST_gp_'
 
-    f_name_gp =  gpe_prefix + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
-    f_name_stn = stn_prefix + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
-    gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
-    stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+    if ga == "n":
+        f_name_gp =  gpe_prefix + str(gpe_rat) + '_stn_' +name+ "-3001-0"+".gdf"
+        f_name_stn = stn_prefix + str(gpe_rat) + '_stn_' +name+"-3002-0"+".gdf"
+    else:
+
+        f_name_gp = 'GP_gp_' + str(gpe_rat) + '_stn_' + str(stn_rat)+"_"+sim_type+"_"+str(gpe_ratio)+"_"+str(stn_ratio)+"_"+str(scale_gpe_inh)+"_"+str(scale_stn_exc)+"_"+str(scale_synaptic)+"_"+str(scale_conn)+"_"+str(scale_delays)+"_"+str(name)+"-3001-0"+".gdf"
+        f_name_stn = 'ST_gp_' + str(gpe_rat) + '_stn_' + str(stn_rat)+"_"+sim_type+"_"+str(gpe_ratio)+"_"+str(stn_ratio)+"_"+str(scale_gpe_inh)+"_"+str(scale_stn_exc)+"_"+str(scale_synaptic)+"_"+str(scale_conn)+"_"+str(scale_delays)+"_"+str(name)+"-3002-0"+".gdf"
+
+
+    if ga == "n":
+        gpe_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_gp)
+        stn_act = np.loadtxt(pars.data_path+str(seed)+"/"+f_name_stn)
+    else:
+        gpe_act = np.loadtxt("/home/bahuguna/Work/Data_Alex/target_data/GA_params/"+f_name_gp)
+        stn_act = np.loadtxt("/home/bahuguna/Work/Data_Alex/target_data/GA_params/"+f_name_stn)
 
     #lim = int(np.max(stn_act[:,1]))
     lim = simtime

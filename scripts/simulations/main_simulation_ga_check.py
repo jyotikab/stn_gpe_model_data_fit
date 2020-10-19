@@ -43,12 +43,15 @@ def runSim(params):
     simtime = pars.T_total # 
     path = params["path"]
     scale_gpe_inh = params["scale_gpe_inh"]
+    scale_stn_exc = params["scale_stn_exc"]
     scale_synaptic = params["scale_synaptic"]
     scale_conn = params["scale_conn"]
     scale_delays = params["scale_delays"]
     sim_type = params["sim_type"]
     gpe_ratio = params["gpe_ratio"]
     stn_ratio = params["stn_ratio"]
+    ip_stn_delay = params["ip_stn_delay"]
+    ip_gpe_delay = params["ip_gpe_delay"]
 
     print(params)
     print(simtime)
@@ -66,6 +69,9 @@ def runSim(params):
             if sim_type == "non_bursty":
                 gp_neurons = nest.Create('ssbn',Ngpe,pars.neuron_param)
                 st_neurons = nest.Create('ssbn',Nstn,pars.neuron_param)
+                Ngpe_n = Ngpe
+                Nstn_n = Nstn
+
             else:
                 Ngpe_nb = int(Ngpe*(1-gpe_ratio))
                 Nstn_nb = int(Nstn*(1-stn_ratio))
@@ -78,15 +84,18 @@ def runSim(params):
                 Nstn_b = int(Nstn*(stn_ratio))
                 gp_neurons_b = nest.Create('ssbn',Ngpe_b,pars.neuron_param)
                 st_neurons_b = nest.Create('ssbn',Nstn_b,pars.neuron_param)
-                gp_neurons = np.hstack((gp_neurons_nb,gp_neurons_b))
-                st_neurons = np.hstack((st_neurons_nb,st_neurons_b))
+                gp_neurons = np.hstack((gp_neurons_nb,gp_neurons_b)).tolist()
+                st_neurons = np.hstack((st_neurons_nb,st_neurons_b)).tolist()
+                Ngpe_n = Ngpe_b + Ngpe_nb
+                Nstn_n = Nstn_b + Nstn_nb
+
 
             # Spike detectors
             gp_sd = nest.Create("spike_detector", 1)
             st_sd = nest.Create("spike_detector", 1)
             
-            f_name_gp = 'GP_gp_' + str(poi_rate_bkg_gpe[ii]) + '_stn_' + str(name)
-            f_name_st = 'ST_gp_' + str(poi_rate_bkg_gpe[ii]) + '_stn_' + str(name)            
+            f_name_gp = 'GP_gp_' + str(poi_rate_bkg_gpe[ii]) + '_stn_' + str(poi_rate_bkg_stn)+"_"+sim_type+"_"+str(gpe_ratio)+"_"+str(stn_ratio)+"_"+str(scale_gpe_inh)+"_"+str(scale_stn_exc)+"_"+str(scale_synaptic)+"_"+str(scale_conn)+"_"+str(scale_delays)+"_"+str(name)
+            f_name_st = 'ST_gp_' + str(poi_rate_bkg_gpe[ii]) + '_stn_' + str(poi_rate_bkg_stn)+"_"+sim_type+"_"+str(gpe_ratio)+"_"+str(stn_ratio)+"_"+str(scale_gpe_inh)+"_"+str(scale_stn_exc)+"_"+str(scale_synaptic)+"_"+str(scale_conn)+"_"+str(scale_delays)+"_"+str(name)            
             
             nest.SetStatus(gp_sd,[{"label":f_name_gp,"withtime": True,"withgid": True,'to_memory':False,'to_file':True}])
             nest.SetStatus(st_sd,[{"label": f_name_st,"withtime": True,"withgid": True,'to_memory':False,'to_file':True}])
@@ -98,36 +107,36 @@ def runSim(params):
                     inh_rate = np.round(stn_inp_rate[1][1:],0)
                     pg_gen_gpe = nest.Create('inhomogeneous_poisson_generator',1)
                     nest.SetStatus(pg_gen_gpe,{'rate_values':poi_rate_bkg_gpe[ii]-inh_rate*scale_gpe_inh,'rate_times':np.round(stn_inp_rate[0][1:],0)})
-                    weights = np.random.uniform(low=0.5,high=1.5,size=Ngpe)
-                    delays = np.ones(Ngpe)
+                    weights = np.random.uniform(low=0.5,high=1.5,size=Ngpe_n)
+                    delays = np.ones(Ngpe_n)*ip_gpe_delay
                     nest.Connect(pg_gen_gpe,gp_neurons,syn_spec={"weight":[ [x] for x in weights],"delay":[[x] for x in delays]})
                     # PG TO STN
                     #pg_gen_stn = nest.Create('poisson_generator',1,{'rate':stn_inp_rate})
                     pg_gen_stn = nest.Create('inhomogeneous_poisson_generator',1)
                     print(inh_rate)
-                    nest.SetStatus(pg_gen_stn,{'rate_values':inh_rate+poi_rate_bkg_stn[ii],'rate_times':np.round(stn_inp_rate[0][1:],0)})
-                    weights = np.random.uniform(low=0.5,high=1.5,size=Nstn)
-                    delays = np.ones(Nstn)
+                    nest.SetStatus(pg_gen_stn,{'rate_values':inh_rate*scale_stn_exc+poi_rate_bkg_stn[ii],'rate_times':np.round(stn_inp_rate[0][1:],0)})
+                    weights = np.random.uniform(low=0.5,high=1.5,size=Nstn_n)
+                    delays = np.ones(Nstn_n)*ip_stn_delay
                     nest.Connect(pg_gen_stn,st_neurons,syn_spec={'weight':[ [x] for x in weights],'delay':[[x] for x in delays]})
 
 
             if connect_stn_gpe:
                     print( 'STN GPE Connect')
                     # random connectivity, synapse numbers
-                    syn_stn_gpe = {'rule':'fixed_outdegree','outdegree':int(Ngpe*pars.epsilon_stn_gpe*scale_conn)}
-                    syn_gpe_gpe = {'rule':'fixed_outdegree','outdegree':int(Ngpe*pars.epsilon_gpe_gpe*scale_conn)}
-                    syn_gpe_stn = {'rule':'fixed_outdegree','outdegree':int(Nstn*pars.epsilon_gpe_stn*scale_conn)}
+                    syn_stn_gpe = {'rule':'fixed_outdegree','outdegree':int(Ngpe_n*pars.epsilon_stn_gpe*scale_conn)}
+                    syn_gpe_gpe = {'rule':'fixed_outdegree','outdegree':int(Ngpe_n*pars.epsilon_gpe_gpe*scale_conn)}
+                    syn_gpe_stn = {'rule':'fixed_outdegree','outdegree':int(Nstn_n*pars.epsilon_gpe_stn*scale_conn)}
                     
                     print( syn_stn_gpe) 
                     print( syn_gpe_gpe)
                     print( syn_gpe_stn)
                     # STN-STN == No connections
                     print( 'Connect STN-GPE')
-                    nest.Connect(st_neurons,gp_neurons,conn_spec=syn_stn_gpe,syn_spec={'weight':pars.J_stn_gpe,'delay':pars.del_stn_gpe*scale_delays})
+                    nest.Connect(st_neurons,gp_neurons,conn_spec=syn_stn_gpe,syn_spec={'weight':pars.J_stn_gpe*scale_synaptic,'delay':pars.del_stn_gpe*scale_delays})
                     print ('Connect GPE-STN')                                                                                 
-                    nest.Connect(gp_neurons,st_neurons,conn_spec=syn_gpe_stn,syn_spec={'weight':pars.J_gpe_stn,'delay':pars.del_gpe_stn*scale_delays})
+                    nest.Connect(gp_neurons,st_neurons,conn_spec=syn_gpe_stn,syn_spec={'weight':pars.J_gpe_stn*scale_synaptic,'delay':pars.del_gpe_stn*scale_delays})
                     print( 'Connect GPE-GPE')                                                                                 
-                    nest.Connect(gp_neurons,gp_neurons,conn_spec=syn_gpe_gpe,syn_spec={'weight':pars.J_gpe_gpe,'delay':pars.del_gpe_gpe*scale_delays})
+                    nest.Connect(gp_neurons,gp_neurons,conn_spec=syn_gpe_gpe,syn_spec={'weight':pars.J_gpe_gpe*scale_synaptic,'delay':pars.del_gpe_gpe*scale_delays})
 
             # record spikes
             nest.Connect(gp_neurons,gp_sd)
